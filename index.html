@@ -8,8 +8,35 @@
 </head>
 <body>
   <div class="top-controls">
-    <div class="timer-display" id="timerDisplay" aria-live="polite">00:00</div>
-    <button class="timer-btn" id="startTimerBtn" type="button">Start timer</button>
+    <div class="primary-controls">
+      <div class="timer-display" id="timerDisplay" aria-live="polite">00:00</div>
+      <button class="timer-btn" id="startTimerBtn" type="button">Start timer</button>
+      <button class="timer-btn" id="loadDefaultBtn" type="button">Load default files</button>
+    </div>
+
+    <div class="upload-controls" aria-label="Upload content">
+      <label class="upload-field" for="passageFileInput">
+        <span>Passage file</span>
+        <input id="passageFileInput" type="file" accept=".md,.txt,text/markdown,text/plain" />
+      </label>
+      <label class="upload-field" for="questionsFileInput">
+        <span>Questions file</span>
+        <input id="questionsFileInput" type="file" accept=".md,.txt,text/markdown,text/plain" />
+      </label>
+      <button class="timer-btn upload-btn" id="uploadFilesBtn" type="button">Upload files to cloud</button>
+    </div>
+
+    <div class="paste-controls" aria-label="Paste content fallback">
+      <label class="paste-field" for="passagePasteInput">
+        <span>Paste passage text</span>
+        <textarea id="passagePasteInput" rows="4" placeholder="Paste passage markdown here..."></textarea>
+      </label>
+      <label class="paste-field" for="questionsPasteInput">
+        <span>Paste questions text</span>
+        <textarea id="questionsPasteInput" rows="4" placeholder="Paste questions markdown here..."></textarea>
+      </label>
+      <button class="timer-btn upload-btn" id="uploadPasteBtn" type="button">Upload pasted content</button>
+    </div>
   </div>
 
   <div class="container">
@@ -25,6 +52,16 @@
       <div id="questionsContent" class="mono-content">Loading questions...</div>
       <div class="status" id="statusMsg"></div>
     </div>
+
+    <aside class="tests-column" id="testsColumn" aria-label="Uploaded tests">
+      <div class="tests-header">
+        <h2 class="tests-title">Uploaded Tests</h2>
+        <button class="timer-btn tests-refresh-btn" id="refreshTestsBtn" type="button">Refresh</button>
+      </div>
+      <div class="tests-list" id="testsList">
+        <div class="tests-empty" id="testsEmptyMsg">No uploaded tests yet.</div>
+      </div>
+    </aside>
   </div>
 
   <div class="selection-tools" id="selectionTools" aria-hidden="true">
@@ -49,6 +86,16 @@
     </button>
   </div>
 
+  <footer class="app-footer" aria-label="Application footer">
+    <div class="app-footer-inner">
+      <p class="app-footer-title">IELTS Reading Practice Workspace</p>
+      <p class="app-footer-meta">Cloud-enabled passage uploads, test history, and focused reading mode.</p>
+    </div>
+  </footer>
+
+  <script src="firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

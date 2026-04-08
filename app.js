@@ -115,33 +115,459 @@ function renderMarkdown(markdownText) {
   return html.join('');
 }
 
+const CONTENT_DOC_PATH = 'contentSets/latest';
+const CONTENT_CACHE_KEY = 'uploadedContentCache';
+const MAX_TEXT_SIZE = 250000;
+const TEST_COLLECTION = 'contentSets';
+let firestoreDb = null;
+let activeUploadedTestId = '';
+
+function isFirebaseConfigValid(config) {
+  if (!config || typeof config !== 'object') {
+    return false;
+  }
+  return !!config.apiKey && !!config.projectId && config.apiKey !== 'YOUR_API_KEY';
+}
+
+function initFirebase() {
+  if (typeof window.firebase === 'undefined') {
+    return { ready: false, reason: 'Firebase SDK not loaded.' };
+  }
+
+  const config = window.FIREBASE_CONFIG;
+  if (!isFirebaseConfigValid(config)) {
+    return { ready: false, reason: 'Firebase config is missing. Update firebase-config.js.' };
+  }
+
+  try {
+    if (window.firebase.apps.length === 0) {
+      window.firebase.initializeApp(config);
+    }
+    firestoreDb = window.firebase.firestore();
+    return { ready: true, reason: '' };
+  } catch (error) {
+    return { ready: false, reason: 'Firebase init failed. Check config values and network access.' };
+  }
+}
+
+function setStatus(message) {
+  const status = document.getElementById('statusMsg');
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function normalizePayload(passageText, questionsText, sourceType) {
+  return {
+    passage: String(passageText || '').replace(/\r\n/g, '\n').trim(),
+    questions: String(questionsText || '').replace(/\r\n/g, '\n').trim(),
+    sourceType: sourceType || 'unknown'
+  };
+}
+
+function validatePayload(payload) {
+  if (!payload.passage || !payload.questions) {
+    return 'Passage and questions are both required.';
+  }
+  if (payload.passage.length > MAX_TEXT_SIZE || payload.questions.length > MAX_TEXT_SIZE) {
+    return 'Content is too large. Keep each field under 250,000 characters.';
+  }
+  return '';
+}
+
+function extractTestTitle(payload) {
+  const headingMatch = payload.passage.match(/^#{1,3}\s+(.+)$/m);
+  if (headingMatch && headingMatch[1]) {
+    return headingMatch[1].trim().slice(0, 80);
+  }
+  const now = new Date();
+  const pad = (value) => String(value).padStart(2, '0');
+  const stamp = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+  return 'Uploaded Test ' + stamp;
+}
+
+function formatTimeLabel(epochMs) {
+  if (!epochMs) {
+    return 'Unknown time';
+  }
+  const date = new Date(epochMs);
+  return date.toLocaleString();
+}
+
+function renderUploadedTestsList(items) {
+  const list = document.getElementById('testsList');
+  if (!list) {
+    return;
+  }
+
+  list.innerHTML = '';
+  if (!items.length) {
+    const empty = document.createElement('div');
+    empty.className = 'tests-empty';
+    empty.textContent = 'No uploaded tests yet.';
+    list.appendChild(empty);
+    return;
+  }
+
+  items.forEach((item) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'test-item' + (item.id === activeUploadedTestId ? ' active' : '');
+    button.dataset.testId = item.id;
+
+    const title = document.createElement('p');
+    title.className = 'test-item-title';
+    title.textContent = item.title || 'Untitled upload';
+
+    const meta = document.createElement('p');
+    meta.className = 'test-item-meta';
+    meta.textContent = (item.sourceType || 'upload') + ' | ' + formatTimeLabel(item.updatedAtMs);
+
+    button.appendChild(title);
+    button.appendChild(meta);
+    list.appendChild(button);
+  });
+}
+
+async function refreshUploadedTests(selectId) {
+  if (!firestoreDb) {
+    renderUploadedTestsList([]);
+    return;
+  }
+
+  try {
+    const snapshot = await firestoreDb.collection(TEST_COLLECTION).orderBy('updatedAtMs', 'desc').get();
+    const items = snapshot.docs
+      .filter((doc) => doc.id !== 'latest')
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title || 'Untitled upload',
+          sourceType: data.sourceType || 'upload',
+          updatedAtMs: data.updatedAtMs || 0,
+          passage: data.passage,
+          questions: data.questions
+        };
+      })
+      .filter((item) => item.passage && item.questions);
+
+    if (selectId) {
+      activeUploadedTestId = selectId;
+    } else if (!items.some((item) => item.id === activeUploadedTestId)) {
+      activeUploadedTestId = items.length ? items[0].id : '';
+    }
+
+    renderUploadedTestsList(items);
+  } catch (error) {
+    setStatus('Could not refresh uploaded tests list.');
+  }
+}
+
+async function loadTestById(testId) {
+  if (!firestoreDb || !testId) {
+    return;
+  }
+
+  try {
+    const doc = await firestoreDb.collection(TEST_COLLECTION).doc(testId).get();
+    if (!doc.exists) {
+      setStatus('Selected test is no longer available.');
+      return;
+    }
+    const data = doc.data();
+    if (!data || !data.passage || !data.questions) {
+      setStatus('Selected test is missing required fields.');
+      return;
+    }
+
+    const payload = normalizePayload(data.passage, data.questions, data.sourceType || 'uploaded-test');
+    activeUploadedTestId = testId;
+    renderContent(payload, 'Loaded test: ' + (data.title || 'Untitled upload'));
+    saveToLocalCache(payload);
+    await refreshUploadedTests(testId);
+  } catch (error) {
+    setStatus('Could not load selected test.');
+  }
+}
+
+function renderContent(payload, sourceLabel) {
+  const passageEl = document.getElementById('passageContent');
+  const questionsEl = document.getElementById('questionsContent');
+  passageEl.innerHTML = renderMarkdown(payload.passage);
+  questionsEl.innerHTML = renderMarkdown(payload.questions);
+  setStatus(sourceLabel);
+}
+
+function saveToLocalCache(payload) {
+  const cachePayload = {
+    passage: payload.passage,
+    questions: payload.questions,
+    updatedAt: Date.now()
+  };
+  localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(cachePayload));
+}
+
+function loadFromLocalCache() {
+  const raw = localStorage.getItem(CONTENT_CACHE_KEY);
+  if (!raw) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.passage && parsed.questions) {
+      return {
+        passage: parsed.passage,
+        questions: parsed.questions,
+        sourceType: 'local-cache'
+      };
+    }
+  } catch (error) {
+    return null;
+  }
+  return null;
+}
+
+async function loadFromDefaultFiles() {
+  const [passageRes, questionsRes] = await Promise.all([
+    fetch('passage.md'),
+    fetch('questions.md')
+  ]);
+
+  if (!passageRes.ok || !questionsRes.ok) {
+    throw new Error('Could not load one or more text files.');
+  }
+
+  const [passageText, questionsText] = await Promise.all([
+    passageRes.text(),
+    questionsRes.text()
+  ]);
+
+  return normalizePayload(passageText, questionsText, 'default-files');
+}
+
+async function loadFromFirestore() {
+  if (!firestoreDb) {
+    return null;
+  }
+
+  try {
+    const doc = await firestoreDb.doc(CONTENT_DOC_PATH).get();
+    if (!doc.exists) {
+      return null;
+    }
+    const data = doc.data();
+    if (!data || !data.passage || !data.questions) {
+      return null;
+    }
+    const payload = normalizePayload(data.passage, data.questions, 'firestore');
+    payload.testId = data.testId || '';
+    return payload;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function saveToFirestore(payload) {
+  if (!firestoreDb) {
+    throw new Error('Firebase is not configured yet.');
+  }
+
+  const nowMs = Date.now();
+  const title = extractTestTitle(payload);
+  const testRef = firestoreDb.collection(TEST_COLLECTION).doc();
+
+  await testRef.set({
+    title: title,
+    passage: payload.passage,
+    questions: payload.questions,
+    sourceType: payload.sourceType,
+    createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+    createdAtMs: nowMs,
+    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAtMs: nowMs
+  });
+
+  await firestoreDb.doc(CONTENT_DOC_PATH).set({
+    title: title,
+    testId: testRef.id,
+    passage: payload.passage,
+    questions: payload.questions,
+    sourceType: payload.sourceType,
+    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAtMs: nowMs
+  }, { merge: true });
+
+  return {
+    id: testRef.id,
+    title: title
+  };
+}
+
+function readTextFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not read file.'));
+    reader.readAsText(file);
+  });
+}
+
+function isTextFile(file) {
+  const lowerName = file.name.toLowerCase();
+  return lowerName.endsWith('.md') || lowerName.endsWith('.txt');
+}
+
+function clearUploadInputs() {
+  const passageFileInput = document.getElementById('passageFileInput');
+  const questionsFileInput = document.getElementById('questionsFileInput');
+  const passagePasteInput = document.getElementById('passagePasteInput');
+  const questionsPasteInput = document.getElementById('questionsPasteInput');
+
+  if (passageFileInput) {
+    passageFileInput.value = '';
+  }
+  if (questionsFileInput) {
+    questionsFileInput.value = '';
+  }
+  if (passagePasteInput) {
+    passagePasteInput.value = '';
+  }
+  if (questionsPasteInput) {
+    questionsPasteInput.value = '';
+  }
+}
+
+async function uploadAndRender(payload, successLabel) {
+  const validationMessage = validatePayload(payload);
+  if (validationMessage) {
+    setStatus(validationMessage);
+    return;
+  }
+
+  try {
+    setStatus('Uploading to Firestore...');
+    const result = await saveToFirestore(payload);
+    saveToLocalCache(payload);
+    renderContent(payload, successLabel);
+    activeUploadedTestId = result.id;
+    await refreshUploadedTests(result.id);
+    clearUploadInputs();
+  } catch (error) {
+    setStatus((error && error.message ? error.message : 'Upload failed.') + ' Check Firestore rules and firebase-config.js.');
+  }
+}
+
+function initUploadControls() {
+  const uploadFilesBtn = document.getElementById('uploadFilesBtn');
+  const uploadPasteBtn = document.getElementById('uploadPasteBtn');
+  const loadDefaultBtn = document.getElementById('loadDefaultBtn');
+  const passageFileInput = document.getElementById('passageFileInput');
+  const questionsFileInput = document.getElementById('questionsFileInput');
+  const passagePasteInput = document.getElementById('passagePasteInput');
+  const questionsPasteInput = document.getElementById('questionsPasteInput');
+  const refreshTestsBtn = document.getElementById('refreshTestsBtn');
+  const testsList = document.getElementById('testsList');
+
+  if (!uploadFilesBtn || !uploadPasteBtn || !loadDefaultBtn) {
+    return;
+  }
+
+  if (refreshTestsBtn) {
+    refreshTestsBtn.addEventListener('click', async () => {
+      await refreshUploadedTests(activeUploadedTestId);
+    });
+  }
+
+  if (testsList) {
+    testsList.addEventListener('click', async (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+      const item = target.closest('.test-item');
+      if (!item) {
+        return;
+      }
+      const testId = item.getAttribute('data-test-id') || '';
+      await loadTestById(testId);
+    });
+  }
+
+  uploadFilesBtn.addEventListener('click', async () => {
+    const passageFile = passageFileInput && passageFileInput.files ? passageFileInput.files[0] : null;
+    const questionsFile = questionsFileInput && questionsFileInput.files ? questionsFileInput.files[0] : null;
+
+    if (!passageFile || !questionsFile) {
+      setStatus('Select both passage and questions files first.');
+      return;
+    }
+
+    if (!isTextFile(passageFile) || !isTextFile(questionsFile)) {
+      setStatus('Only .md or .txt files are supported.');
+      return;
+    }
+
+    try {
+      const [passageText, questionsText] = await Promise.all([
+        readTextFile(passageFile),
+        readTextFile(questionsFile)
+      ]);
+      const payload = normalizePayload(passageText, questionsText, 'file-upload');
+      await uploadAndRender(payload, 'Uploaded and loaded from Firestore (file mode).');
+    } catch (error) {
+      setStatus('Failed to read selected files.');
+    }
+  });
+
+  uploadPasteBtn.addEventListener('click', async () => {
+    const payload = normalizePayload(
+      passagePasteInput ? passagePasteInput.value : '',
+      questionsPasteInput ? questionsPasteInput.value : '',
+      'paste-upload'
+    );
+    await uploadAndRender(payload, 'Uploaded and loaded from Firestore (paste mode).');
+  });
+
+  loadDefaultBtn.addEventListener('click', async () => {
+    try {
+      const payload = await loadFromDefaultFiles();
+      renderContent(payload, 'Loaded from local default files.');
+      saveToLocalCache(payload);
+    } catch (error) {
+      setStatus('Could not reload default files. Run from a local server.');
+    }
+  });
+}
+
 async function loadContent() {
   const passageEl = document.getElementById('passageContent');
   const questionsEl = document.getElementById('questionsContent');
-  const status = document.getElementById('statusMsg');
 
   try {
-    const [passageRes, questionsRes] = await Promise.all([
-      fetch('passage.md'),
-      fetch('questions.md')
-    ]);
-
-    if (!passageRes.ok || !questionsRes.ok) {
-      throw new Error('Could not load one or more text files.');
+    const remotePayload = await loadFromFirestore();
+    if (remotePayload) {
+      activeUploadedTestId = remotePayload.testId || '';
+      renderContent(remotePayload, 'Loaded latest cloud content from Firestore.');
+      saveToLocalCache(remotePayload);
+      await refreshUploadedTests(activeUploadedTestId);
+      return;
     }
 
-    const [passageText, questionsText] = await Promise.all([
-      passageRes.text(),
-      questionsRes.text()
-    ]);
+    const cachePayload = loadFromLocalCache();
+    if (cachePayload) {
+      renderContent(cachePayload, 'Loaded from local cache.');
+      await refreshUploadedTests();
+      return;
+    }
 
-    passageEl.innerHTML = renderMarkdown(passageText);
-    questionsEl.innerHTML = renderMarkdown(questionsText);
-    status.textContent = 'Loaded from passage.md and questions.md';
+    const defaultPayload = await loadFromDefaultFiles();
+    renderContent(defaultPayload, 'Loaded from passage.md and questions.md');
+    await refreshUploadedTests();
   } catch (error) {
-    passageEl.textContent = 'Failed to load passage.md';
-    questionsEl.textContent = 'Failed to load questions.md';
-    status.textContent = 'Tip: run this from a local server (not file://) so fetch() can read text files.';
+    passageEl.textContent = 'Failed to load content.';
+    questionsEl.textContent = 'Unable to load any content source.';
+    setStatus('Tip: run this from a local server (not file://) and configure firebase-config.js for cloud data.');
   }
 }
 
@@ -184,7 +610,9 @@ function initTimer() {
 function initColumnResize() {
   const container = document.querySelector('.container');
   const resizer = document.getElementById('columnResizer');
-  const minPaneWidth = 280;
+  const testsColumn = document.getElementById('testsColumn');
+  const minLeftWidth = 280;
+  const minRightWidth = 240;
   let isResizing = false;
 
   if (!container || !resizer) {
@@ -199,8 +627,9 @@ function initColumnResize() {
   function updateWidth(clientX) {
     const rect = container.getBoundingClientRect();
     const resizerWidth = resizer.getBoundingClientRect().width;
-    const maxLeft = rect.width - minPaneWidth - resizerWidth;
-    const nextLeft = Math.min(Math.max(clientX - rect.left, minPaneWidth), maxLeft);
+    const testsWidth = testsColumn ? testsColumn.getBoundingClientRect().width : 0;
+    const maxLeft = Math.max(minLeftWidth, rect.width - minRightWidth - resizerWidth - testsWidth - 10);
+    const nextLeft = Math.min(Math.max(clientX - rect.left, minLeftWidth), maxLeft);
     document.documentElement.style.setProperty('--left-col', nextLeft + 'px');
     localStorage.setItem('leftColumnWidthPx', String(Math.round(nextLeft)));
   }
@@ -381,7 +810,20 @@ function initHighlightTools() {
   window.addEventListener('resize', hideTools);
 }
 
-initTimer();
-initColumnResize();
-initHighlightTools();
-loadContent();
+async function bootstrap() {
+  initTimer();
+  initColumnResize();
+  initHighlightTools();
+  initUploadControls();
+
+  const firebaseState = initFirebase();
+  if (firebaseState.ready) {
+    setStatus('Firebase connected. Loading cloud content...');
+  } else {
+    setStatus(firebaseState.reason + ' Loading local content...');
+  }
+
+  await loadContent();
+}
+
+bootstrap();

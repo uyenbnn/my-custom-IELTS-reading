@@ -8,16 +8,88 @@ body {
   padding: 20px;
   background: #f7f7f7;
   color: #222;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .top-controls {
   max-width: 1200px;
   margin: 0 auto 12px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.primary-controls {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+.upload-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 10px;
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid #e5e8f6;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.upload-field {
+  display: grid;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: #2e3c73;
+  font-weight: 600;
+}
+
+.upload-field input[type="file"] {
+  border: 1px solid #d4dbf8;
+  border-radius: 8px;
+  padding: 6px;
+  background: #f8faff;
+  color: #27356e;
+  font-size: 0.8rem;
+}
+
+.paste-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid #e5e8f6;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.paste-field {
+  display: grid;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: #2e3c73;
+  font-weight: 600;
+}
+
+.paste-field textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 72px;
+  border: 1px solid #d4dbf8;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f8faff;
+  color: #253266;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.86rem;
+}
+
+.upload-btn {
+  height: 34px;
+  white-space: nowrap;
 }
 
 .timer-display {
@@ -54,10 +126,12 @@ body {
 
 .container {
   display: grid;
-  grid-template-columns: var(--left-col) 10px minmax(260px, 1fr);
+  grid-template-columns: var(--left-col) 10px minmax(260px, 1fr) minmax(220px, 260px);
   max-width: 1200px;
   margin: 0 auto;
-  height: calc(100vh - 92px);
+  gap: 10px;
+  height: calc(100vh - 220px);
+  min-height: 520px;
 }
 
 .resizer {
@@ -82,7 +156,7 @@ body {
   border-radius: 2px;
 }
 
-.left, .right {
+.left, .right, .tests-column {
   background: #fff;
   padding: 20px;
   border-radius: 10px;
@@ -95,6 +169,83 @@ body {
 
 .left { flex: 1.45; }
 .right { flex: 1; }
+
+.tests-column {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+}
+
+.tests-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 2px solid #ececec;
+  padding-bottom: 8px;
+}
+
+.tests-title {
+  margin: 0;
+  font-size: 1.04rem;
+  line-height: 1.2;
+}
+
+.tests-refresh-btn {
+  padding: 5px 8px;
+  font-size: 0.74rem;
+}
+
+.tests-list {
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.tests-empty {
+  font-size: 0.9rem;
+  color: #6a7191;
+  padding: 8px;
+  border: 1px dashed #d9dff3;
+  border-radius: 8px;
+  background: #fafbff;
+}
+
+.test-item {
+  border: 1px solid #d8def4;
+  border-radius: 8px;
+  background: #f9faff;
+  padding: 8px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+}
+
+.test-item:hover {
+  background: #f2f5ff;
+}
+
+.test-item.active {
+  border-color: #8aa0ee;
+  background: #eef2ff;
+  box-shadow: inset 0 0 0 1px #dbe4ff;
+}
+
+.test-item-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #243266;
+  margin: 0 0 3px;
+  line-height: 1.25;
+}
+
+.test-item-meta {
+  font-size: 0.75rem;
+  color: #616a8f;
+}
 
 .panel-title {
   margin: 0 0 12px;
@@ -267,6 +418,33 @@ body {
   padding: 0 1px;
 }
 
+.app-footer {
+  max-width: 1200px;
+  margin: 12px auto 0;
+}
+
+.app-footer-inner {
+  border: 1px solid #dee4f7;
+  border-radius: 10px;
+  background: #fcfdff;
+  padding: 12px 14px;
+  text-align: center;
+  box-shadow: 0 1px 6px rgba(37, 50, 102, 0.05);
+}
+
+.app-footer-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #253266;
+}
+
+.app-footer-meta {
+  margin: 3px 0 0;
+  font-size: 0.78rem;
+  color: #667096;
+}
+
 @media (max-width: 720px) {
   body { overflow: auto; }
 
@@ -274,6 +452,13 @@ body {
     position: sticky;
     top: 0;
     z-index: 3;
+    background: #f7f7f7;
+    padding-top: 4px;
+  }
+
+  .upload-controls,
+  .paste-controls {
+    grid-template-columns: 1fr;
   }
 
   .container {
@@ -282,5 +467,13 @@ body {
   }
 
   .resizer { display: none; }
-  .left, .right { height: 45vh; }
+  .left, .right, .tests-column { height: 45vh; }
+
+  .app-footer {
+    margin-top: 8px;
+  }
+
+  .app-footer-inner {
+    padding: 10px 12px;
+  }
 }
