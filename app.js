@@ -610,7 +610,6 @@ function initTimer() {
 function initColumnResize() {
   const container = document.querySelector('.container');
   const resizer = document.getElementById('columnResizer');
-  const testsColumn = document.getElementById('testsColumn');
   const minLeftWidth = 280;
   const minRightWidth = 240;
   let isResizing = false;
@@ -627,8 +626,7 @@ function initColumnResize() {
   function updateWidth(clientX) {
     const rect = container.getBoundingClientRect();
     const resizerWidth = resizer.getBoundingClientRect().width;
-    const testsWidth = testsColumn ? testsColumn.getBoundingClientRect().width : 0;
-    const maxLeft = Math.max(minLeftWidth, rect.width - minRightWidth - resizerWidth - testsWidth - 10);
+    const maxLeft = Math.max(minLeftWidth, rect.width - minRightWidth - resizerWidth - 10);
     const nextLeft = Math.min(Math.max(clientX - rect.left, minLeftWidth), maxLeft);
     document.documentElement.style.setProperty('--left-col', nextLeft + 'px');
     localStorage.setItem('leftColumnWidthPx', String(Math.round(nextLeft)));
@@ -688,6 +686,36 @@ function initHighlightTools() {
     return leftPane.contains(node) || rightPane.contains(node);
   }
 
+  function isSelectionInsideSectionLabel(range) {
+    const commonEl = range.commonAncestorContainer.nodeType === 1
+      ? range.commonAncestorContainer
+      : range.commonAncestorContainer.parentElement;
+
+    if (commonEl && commonEl.closest('.section-label')) {
+      return true;
+    }
+
+    if (range.startContainer.nodeType === 1) {
+      const startEl = range.startContainer;
+      if (startEl.closest && startEl.closest('.section-label')) {
+        return true;
+      }
+    } else if (range.startContainer.parentElement && range.startContainer.parentElement.closest('.section-label')) {
+      return true;
+    }
+
+    if (range.endContainer.nodeType === 1) {
+      const endEl = range.endContainer;
+      if (endEl.closest && endEl.closest('.section-label')) {
+        return true;
+      }
+    } else if (range.endContainer.parentElement && range.endContainer.parentElement.closest('.section-label')) {
+      return true;
+    }
+
+    return false;
+  }
+
   function unwrapHighlight(node) {
     if (!node || !node.parentNode) {
       return;
@@ -732,10 +760,18 @@ function initHighlightTools() {
       hideTools();
       return;
     }
+    if (isSelectionInsideSectionLabel(range)) {
+      hideTools();
+      return;
+    }
 
     const rect = range.getBoundingClientRect();
-    const top = Math.max(8, rect.top + window.scrollY - 44);
-    const left = Math.max(8, rect.left + window.scrollX);
+    const toolbarWidth = tools.offsetWidth || 260;
+    const viewportPadding = 8;
+    const top = Math.max(viewportPadding, rect.top - 44);
+    const preferredLeft = rect.left + (rect.width / 2) - (toolbarWidth / 2);
+    const maxLeft = Math.max(viewportPadding, window.innerWidth - toolbarWidth - viewportPadding);
+    const left = Math.min(Math.max(preferredLeft, viewportPadding), maxLeft);
 
     tools.style.top = top + 'px';
     tools.style.left = left + 'px';
@@ -755,6 +791,10 @@ function initHighlightTools() {
 
     const range = selection.getRangeAt(0);
     if (!isSelectionInsidePane(range)) {
+      hideTools();
+      return;
+    }
+    if (isSelectionInsideSectionLabel(range)) {
       hideTools();
       return;
     }

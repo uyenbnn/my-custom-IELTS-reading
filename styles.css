@@ -126,12 +126,12 @@ body {
 
 .container {
   display: grid;
-  grid-template-columns: var(--left-col) 10px minmax(260px, 1fr) minmax(220px, 260px);
+  grid-template-columns: var(--left-col) 10px minmax(260px, 1fr);
   max-width: 1200px;
   margin: 0 auto;
   gap: 10px;
-  height: calc(100vh - 220px);
-  min-height: 520px;
+  height: calc(100vh - 280px);
+  min-height: 600px;
 }
 
 .resizer {
@@ -156,7 +156,7 @@ body {
   border-radius: 2px;
 }
 
-.left, .right, .tests-column {
+.left, .right {
   background: #fff;
   padding: 20px;
   border-radius: 10px;
@@ -171,9 +171,16 @@ body {
 .right { flex: 1; }
 
 .tests-column {
+  max-width: 1200px;
+  margin: 0 auto 10px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e6ebfa;
+  padding: 12px;
   display: grid;
   grid-template-rows: auto 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tests-header {
@@ -198,10 +205,12 @@ body {
 
 .tests-list {
   min-height: 0;
-  overflow-y: auto;
-  display: grid;
-  align-content: start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  align-items: stretch;
   gap: 8px;
+  padding-bottom: 4px;
 }
 
 .tests-empty {
@@ -219,7 +228,10 @@ body {
   background: #f9faff;
   padding: 8px;
   cursor: pointer;
+  min-width: 220px;
+  max-width: 300px;
   width: 100%;
+  flex: 0 0 220px;
   text-align: left;
   font: inherit;
 }
@@ -467,7 +479,21 @@ body {
   }
 
   .resizer { display: none; }
-  .left, .right, .tests-column { height: 45vh; }
+  .tests-column {
+    margin-bottom: 8px;
+    padding: 10px;
+  }
+
+  .tests-list {
+    overflow-x: auto;
+  }
+
+  .test-item {
+    flex-basis: 190px;
+    min-width: 190px;
+  }
+
+  .left, .right { height: 52vh; }
 
   .app-footer {
     margin-top: 8px;
