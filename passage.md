@@ -1,0 +1,28 @@
+READING PASSAGE 2
+You should spend about 20 minutes on Questions 14–26.
+
+A   
+Biophilic Design
+
+Biophilic design, a movement related to green architecture, has gained much momentum within the building community in recent years. The premise of biophilic design seeks both to avoid or minimize harmful impacts on the natural environment, and equally importantly, to provide and restore beneficial contacts between people and nature in the built environment.
+
+B
+People have a psychologically developed need to commune with nature but this has frequently been neglected. All too often, architects have put creative originality before the needs of the people who have to live and work in their futuristic constructions, with scant regard for emotional, as well as practical, considerations. Biophilic design does not advocate tree houses or cave-dwelling, but it does provide the nature-based features that maximize human functioning and health. Though not technically a biophilic design, Fallingwater – the stunning house in rural Pennsylvania designed in the 1930s by Frank Lloyd Wright – arguably speaks to the human soul much more than the boxlike blocks of flats designed by his contemporary Le Corbusier.
+
+C
+In the modern world, much of our built environment is obstructing the age-old connection between humans and nature. The rates of technological progress are far exceeding rates of psychological evolution, leaving us ill-equipped to cope with our lifestyle, which in turn leads to increased stress. Because biophilia attempts to integrate basic and current needs, it can alleviate the difficulties caused by the brain's constant attempts to function in a modern environment it has not yet evolved to handle. For example, one crucial element of the natural landscape to human health is sunlight. We are evolutionarily programmed to respond positively to sunny areas over dark or overcast ones, and sense that they will foster restoration, improve emotional well-being and promote health.
+
+D
+Because of its tremendous impact on human psychology, biophilic design plays a vital role in healthcare and healthcare delivery. The current healthcare system contains many flaws, especially in its physical spaces. Hospitals, clinics, and offices are high-stress environments for patients, visitors and healthcare professionals alike. One well-known study looked at the impact of nature on patients after surgery. One group had a view of a tree; the others had a window looking onto a brick wall. The first group had shorter hospital stays, received fewer negative comments from the nurses, required fewer analgesics, and had slightly fewer post-operative complications.
+
+E
+As a consequence of this and other studies, nature and nature-based design have been integrated into the physical design of many hospitals. For example, Dartmouth-Hitchcock Medical Center (DHMC) in New Hampshire boasts an atrium design, illuminating the entire facility. Natural elements also permeate the building, including wood, stone, and numerous live plants. While DHMC was built to incorporate these qualities, other hospitals have had biophilic features added to existing structures. The application of biophilia's concepts to interior design in hospitals has increased substantially as administrators have witnessed patients' positive responses to nature.
+
+F
+Many existing buildings contain biophilic elements, but only a few have been built with the specific idea of biophilic design in mind. One such building is the Adam Joseph Lewis Center for Environmental Studies at Oberlin College, in Ohio. The director of Oberlin's Environmental Studies Program, David Orr, explained the building's goals were 'to create not just a place for classes but rather a building that would help to redefine the relationship between humankind and the environment – one that would expand our sense of ecological possibilities'. The Lewis Center is sustainable in a broader sense than in the typical application of the word. It harnesses solar power, utilizes both active and passive air systems, and monitors the weather to adapt to conditions. The Center's 'Living Machine' treats wastewater by combining traditional wastewater technology with wetland ecosystems' purification processes, producing water that can be used in the toilets and for irrigation. In their design, Orr and his team of architects engineered a healthy and comfortable space for students, while ensuring the surrounding environment was undamaged.
+
+G
+Another example is the University of Guelph-Humber building in Ontario, Canada. It contains a centrally located bio-wall, vertically spanning the building. The wall is covered in dense foliage which not only connects people to nature on the inside of the building, but also functions as a new filtration system prototype. The wall purifies the air and has the potential to fulfil the building's fresh air intake requirements. This is another example of how biophilic design principles can be applied in a variety of contexts. These examples prove that the built environment need not interfere with biological human needs to commune with nature, nor with existing ecological systems.
+
+H
+Ancient architects built for their cultures, which were almost always more in touch with the earth than Western society of the present. They mimicked nature's forms, producing magnificent structures with which we are still awed – though biophilic design is a novel concept, they certainly employed some of its recommendations. Today, we can add another layer to this tradition and ensure maximal benefit for our planet and ourselves.
