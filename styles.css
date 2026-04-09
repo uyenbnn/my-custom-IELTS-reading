@@ -98,12 +98,57 @@ body {
 }
 
 .upload-field input[type="file"] {
+  width: 100%;
   border: 1px solid #d4dbf8;
   border-radius: 8px;
   padding: 6px;
   background: #f8faff;
   color: #27356e;
   font-size: 0.8rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.upload-field input[type="file"]::file-selector-button {
+  border: 1px solid #bfc9ef;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f9fbff 0%, #ebf1ff 100%);
+  color: #223067;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.upload-field input[type="file"]::-webkit-file-upload-button {
+  border: 1px solid #bfc9ef;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f9fbff 0%, #ebf1ff 100%);
+  color: #223067;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.upload-field input[type="file"]:hover::file-selector-button,
+.upload-field input[type="file"]:hover::-webkit-file-upload-button {
+  background: linear-gradient(180deg, #f2f7ff 0%, #e0e9ff 100%);
+  border-color: #9dadde;
+}
+
+.upload-field input[type="file"]:active::file-selector-button,
+.upload-field input[type="file"]:active::-webkit-file-upload-button {
+  transform: translateY(1px);
+}
+
+.upload-field input[type="file"]:focus-visible {
+  outline: 2px solid #cdd9ff;
+  outline-offset: 1px;
 }
 
 .paste-controls {
