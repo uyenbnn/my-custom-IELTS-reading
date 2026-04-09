@@ -26,6 +26,30 @@ body {
   overflow: hidden;
 }
 
+.app-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.app-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #dce4fb;
+  box-shadow: 0 4px 10px rgba(37, 50, 102, 0.12);
+  padding: 7px;
+  flex: 0 0 auto;
+}
+
+.app-header-copy {
+  min-width: 0;
+}
+
 .app-header-inner::after {
   content: "";
   position: absolute;
@@ -553,6 +577,16 @@ body {
   color: #667096;
 }
 
+.app-footer-attribution a {
+  color: #3c4b86;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.app-footer-attribution a:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 720px) {
   body { overflow: auto; }
 
@@ -562,6 +596,16 @@ body {
 
   .app-header-inner {
     padding: 12px;
+  }
+
+  .app-header-brand {
+    gap: 10px;
+  }
+
+  .app-logo {
+    width: 46px;
+    height: 46px;
+    padding: 6px;
   }
 
   .app-header-title {
