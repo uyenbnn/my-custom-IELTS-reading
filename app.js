@@ -120,7 +120,60 @@ const CONTENT_CACHE_KEY = 'uploadedContentCache';
 const MAX_TEXT_SIZE = 250000;
 const TEST_COLLECTION = 'contentSets';
 let firestoreDb = null;
+let realtimeDb = null;
 let activeUploadedTestId = '';
+
+function getFirestoreErrorMessage(error, actionLabel) {
+  const fallback = (actionLabel || 'Firestore operation') + ' failed.';
+  if (!error) {
+    return fallback;
+  }
+
+  const code = String(error.code || '').toLowerCase();
+  const message = String(error.message || '');
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes('database (default) does not exist')) {
+    return 'Cloud Firestore is not initialized for this project. Create Firestore database "(default)" in Firebase Console, then try again.';
+  }
+
+  if (code.includes('permission-denied') || normalized.includes('permission denied')) {
+    return 'Firestore rejected this write due to rules. Update Firestore rules to allow this app to write.';
+  }
+
+  if (code.includes('unavailable') || normalized.includes('network') || normalized.includes('offline')) {
+    return 'Cannot reach Firestore right now. Check internet connection and try again.';
+  }
+
+  return fallback + (message ? ' ' + message : '');
+}
+
+function setUploadControlsEnabled(enabled) {
+  const controlIds = ['uploadFilesBtn', 'uploadPasteBtn', 'refreshTestsBtn'];
+  controlIds.forEach((id) => {
+    const control = document.getElementById(id);
+    if (control) {
+      control.disabled = !enabled;
+      control.title = enabled ? '' : 'Upload disabled until Firestore is available.';
+    }
+  });
+}
+
+async function verifyFirestoreDatabase() {
+  if (!firestoreDb) {
+    return { ready: false, reason: 'Firebase is not configured.' };
+  }
+
+  try {
+    await firestoreDb.doc(CONTENT_DOC_PATH).get();
+    return { ready: true, reason: '' };
+  } catch (error) {
+    return {
+      ready: false,
+      reason: getFirestoreErrorMessage(error, 'Firestore check')
+    };
+  }
+}
 
 function isFirebaseConfigValid(config) {
   if (!config || typeof config !== 'object') {
@@ -144,10 +197,33 @@ function initFirebase() {
       window.firebase.initializeApp(config);
     }
     firestoreDb = window.firebase.firestore();
+    if (typeof window.firebase.database === 'function') {
+      realtimeDb = window.firebase.database();
+    }
     return { ready: true, reason: '' };
   } catch (error) {
     return { ready: false, reason: 'Firebase init failed. Check config values and network access.' };
   }
+}
+
+async function mirrorToRealtimeDatabase(testId, title, payload, nowMs) {
+  if (!realtimeDb) {
+    return;
+  }
+
+  const data = {
+    title: title,
+    testId: testId,
+    passage: payload.passage,
+    questions: payload.questions,
+    sourceType: payload.sourceType,
+    updatedAtMs: nowMs
+  };
+
+  await Promise.all([
+    realtimeDb.ref('contentSets/latest').set(data),
+    realtimeDb.ref('contentSets/tests/' + testId).set(data)
+  ]);
 }
 
 function setStatus(message) {
@@ -260,7 +336,7 @@ async function refreshUploadedTests(selectId) {
 
     renderUploadedTestsList(items);
   } catch (error) {
-    setStatus('Could not refresh uploaded tests list.');
+    setStatus(getFirestoreErrorMessage(error, 'Could not refresh uploaded tests list'));
   }
 }
 
@@ -287,7 +363,7 @@ async function loadTestById(testId) {
     saveToLocalCache(payload);
     await refreshUploadedTests(testId);
   } catch (error) {
-    setStatus('Could not load selected test.');
+    setStatus(getFirestoreErrorMessage(error, 'Could not load selected test'));
   }
 }
 
@@ -364,6 +440,7 @@ async function loadFromFirestore() {
     payload.testId = data.testId || '';
     return payload;
   } catch (error) {
+    setStatus(getFirestoreErrorMessage(error, 'Could not load cloud content'));
     return null;
   }
 }
@@ -397,6 +474,12 @@ async function saveToFirestore(payload) {
     updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
     updatedAtMs: nowMs
   }, { merge: true });
+
+  try {
+    await mirrorToRealtimeDatabase(testRef.id, title, payload, nowMs);
+  } catch (error) {
+    setStatus('Saved to Firestore, but failed to mirror to Realtime Database. Check Realtime Database rules.');
+  }
 
   return {
     id: testRef.id,
@@ -454,7 +537,7 @@ async function uploadAndRender(payload, successLabel) {
     await refreshUploadedTests(result.id);
     clearUploadInputs();
   } catch (error) {
-    setStatus((error && error.message ? error.message : 'Upload failed.') + ' Check Firestore rules and firebase-config.js.');
+    setStatus(getFirestoreErrorMessage(error, 'Upload failed'));
   }
 }
 
@@ -858,8 +941,16 @@ async function bootstrap() {
 
   const firebaseState = initFirebase();
   if (firebaseState.ready) {
-    setStatus('Firebase connected. Loading cloud content...');
+    setStatus('Firebase connected. Checking Firestore...');
+    const firestoreState = await verifyFirestoreDatabase();
+    setUploadControlsEnabled(firestoreState.ready);
+    if (!firestoreState.ready) {
+      setStatus(firestoreState.reason + ' Loading local content...');
+    } else {
+      setStatus('Firebase connected. Loading cloud content...');
+    }
   } else {
+    setUploadControlsEnabled(false);
     setStatus(firebaseState.reason + ' Loading local content...');
   }
 

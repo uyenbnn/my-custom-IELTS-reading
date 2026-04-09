@@ -1,1 +1,36 @@
+# Local Firebase runtime config (keep firebase-config.example.js in repo)
 firebase-config.js
+
+# Dependency directories
+node_modules/
+
+# Firebase local/emulator/cache/debug artifacts
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# Build/output folders
+dist/
+build/
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor/IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment and local override files
+.env
+.env.*
+*.local

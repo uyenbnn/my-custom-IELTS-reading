@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "contentSets": {
+      ".read": true,
+      "latest": {
+        ".write": "newData.hasChildren(['title','testId','passage','questions','sourceType','updatedAtMs']) && newData.child('title').isString() && newData.child('title').val().length > 0 && newData.child('title').val().length <= 120 && newData.child('passage').isString() && newData.child('passage').val().length > 0 && newData.child('passage').val().length <= 250000 && newData.child('questions').isString() && newData.child('questions').val().length > 0 && newData.child('questions').val().length <= 250000 && newData.child('sourceType').isString() && newData.child('updatedAtMs').isNumber()"
+      },
+      "tests": {
+        "$testId": {
+          ".write": "newData.hasChildren(['title','testId','passage','questions','sourceType','updatedAtMs']) && newData.child('title').isString() && newData.child('title').val().length > 0 && newData.child('title').val().length <= 120 && newData.child('testId').isString() && newData.child('testId').val() === $testId && newData.child('passage').isString() && newData.child('passage').val().length > 0 && newData.child('passage').val().length <= 250000 && newData.child('questions').isString() && newData.child('questions').val().length > 0 && newData.child('questions').val().length <= 250000 && newData.child('sourceType').isString() && newData.child('updatedAtMs').isNumber()"
+        }
+      }
+    }
+  }
+}
