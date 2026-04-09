@@ -188,14 +188,16 @@ function initFirebase() {
   }
 
   const config = window.FIREBASE_CONFIG;
-  if (!isFirebaseConfigValid(config)) {
-    return { ready: false, reason: 'Firebase config is missing. Update firebase-config.js.' };
-  }
 
   try {
-    if (window.firebase.apps.length === 0) {
+    if (window.firebase.apps.length === 0 && isFirebaseConfigValid(config)) {
       window.firebase.initializeApp(config);
     }
+
+    if (window.firebase.apps.length === 0) {
+      return { ready: false, reason: 'Firebase config is missing. Update firebase-config.js or use Firebase Hosting init.' };
+    }
+
     firestoreDb = window.firebase.firestore();
     if (typeof window.firebase.database === 'function') {
       realtimeDb = window.firebase.database();
