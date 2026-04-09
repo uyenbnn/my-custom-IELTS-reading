@@ -659,8 +659,9 @@ async function loadContent() {
 function initTimer() {
   const timerDisplay = document.getElementById('timerDisplay');
   const startTimerBtn = document.getElementById('startTimerBtn');
+  const stopTimerBtn = document.getElementById('stopTimerBtn');
 
-  if (!timerDisplay || !startTimerBtn) {
+  if (!timerDisplay || !startTimerBtn || !stopTimerBtn) {
     return;
   }
 
@@ -684,11 +685,24 @@ function initTimer() {
 
     startTimerBtn.disabled = true;
     startTimerBtn.textContent = 'Running';
+    stopTimerBtn.disabled = false;
 
     timerId = window.setInterval(() => {
       elapsedSeconds += 1;
       timerDisplay.textContent = formatTime(elapsedSeconds);
     }, 1000);
+  });
+
+  stopTimerBtn.addEventListener('click', () => {
+    if (timerId === null) {
+      return;
+    }
+
+    window.clearInterval(timerId);
+    timerId = null;
+    startTimerBtn.disabled = false;
+    startTimerBtn.textContent = 'Start timer';
+    stopTimerBtn.disabled = true;
   });
 }
 

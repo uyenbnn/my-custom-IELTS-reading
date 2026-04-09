@@ -1,18 +1,23 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>IELTS Reading</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
-  <div class="top-controls">
-    <div class="primary-controls">
-      <div class="timer-display" id="timerDisplay" aria-live="polite">00:00</div>
-      <button class="timer-btn" id="startTimerBtn" type="button">Start timer</button>
-      <button class="timer-btn" id="loadDefaultBtn" type="button">Load default files</button>
+  <header class="app-header" aria-label="Application header">
+    <div class="app-header-inner">
+      <p class="app-header-kicker">IELTS Reading</p>
+      <h1 class="app-header-title">Focused Practice Workspace</h1>
+      <p class="app-header-subtitle">Upload, read, and answer in one clean space built for concentration.</p>
     </div>
+  </header>
+
+  <div class="top-controls">
 
     <div class="upload-controls" aria-label="Upload content">
       <label class="upload-field" for="passageFileInput">
@@ -49,13 +54,21 @@
     </div>
   </aside>
 
+  <div class="primary-controls">
+    <div class="timer-display" id="timerDisplay" aria-live="polite">00:00</div>
+    <button class="timer-btn" id="startTimerBtn" type="button">Start timer</button>
+    <button class="timer-btn" id="stopTimerBtn" type="button" disabled>Stop timer</button>
+    <button class="timer-btn" id="loadDefaultBtn" type="button">Load default files</button>
+  </div>
+
   <div class="container">
     <div class="left">
       <h1 class="panel-title">Reading Passage</h1>
       <div id="passageContent" class="mono-content">Loading passage...</div>
     </div>
 
-    <div class="resizer" id="columnResizer" role="separator" aria-label="Resize columns" aria-orientation="vertical"></div>
+    <div class="resizer" id="columnResizer" role="separator" aria-label="Resize columns" aria-orientation="vertical">
+    </div>
 
     <div class="right">
       <h1 class="panel-title">Questions</h1>
@@ -70,18 +83,26 @@
       <button class="swatch" type="button" data-color="green" data-value="#b7f3c4" aria-label="Green"></button>
       <button class="swatch" type="button" data-color="orange" data-value="#ffd4a1" aria-label="Orange"></button>
       <button class="swatch" type="button" data-color="pink" data-value="#ffc2de" aria-label="Pink"></button>
-      <button class="swatch" type="button" data-color="light-purple" data-value="#e4d3ff" aria-label="Light purple"></button>
+      <button class="swatch" type="button" data-color="light-purple" data-value="#e4d3ff"
+        aria-label="Light purple"></button>
     </div>
     <button class="tool-btn" id="highlightBtn" type="button">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h5l10-10-5-5L4 15v5zm12.71-11.29a1.004 1.004 0 0 0 0-1.42l-1.99-1.99a1.004 1.004 0 0 0-1.42 0l-1.3 1.3 5.41 5.41 1.3-1.29z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M4 20h5l10-10-5-5L4 15v5zm12.71-11.29a1.004 1.004 0 0 0 0-1.42l-1.99-1.99a1.004 1.004 0 0 0-1.42 0l-1.3 1.3 5.41 5.41 1.3-1.29z" />
+      </svg>
       <span>Highlight</span>
     </button>
     <button class="tool-btn" id="clearSelectedBtn" type="button" style="display:none;">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 6h10l1 2h4v2H2V8h4l1-2zm2 6h2v7H9v-7zm4 0h2v7h-2v-7z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 6h10l1 2h4v2H2V8h4l1-2zm2 6h2v7H9v-7zm4 0h2v7h-2v-7z" />
+      </svg>
       <span>Clear selected</span>
     </button>
     <button class="tool-btn" id="clearHighlightBtn" type="button">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1z" />
+      </svg>
       <span>Clear all</span>
     </button>
   </div>
@@ -89,7 +110,7 @@
   <footer class="app-footer" aria-label="Application footer">
     <div class="app-footer-inner">
       <p class="app-footer-title">IELTS Reading Practice Workspace</p>
-      <p class="app-footer-meta">Cloud-enabled passage uploads, test history, and focused reading mode.</p>
+      <p class="app-footer-meta">© 2026 Developed by Uyen Bui Nguyen Nhi. For the love of IELTS Reading. All rights reserved.</p>
     </div>
   </footer>
 
@@ -110,4 +131,5 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>
